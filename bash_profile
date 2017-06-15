@@ -58,6 +58,11 @@ if [ -f ~/.bash_aliases ]; then
 	. ~/.bash_aliases
 fi
 
+# Import shortcuts
+if [ -f ~/.bash_shortcuts ]; then
+	. ~/.bash_shortcuts
+fi
+
 # Autocomplete bash commands following sudo etc.
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
 	. $(brew --prefix)/etc/bash_completion

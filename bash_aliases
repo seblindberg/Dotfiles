@@ -27,14 +27,5 @@ alias go='git checkout '
 # Vagrant
 alias vg='vagrant'
 
-# iCloud Drive
-alias cdi="cd $ICLOUD_DRIVE"
-alias ci="cdi"
-alias cdp="cd $ICLOUD_DRIVE/Projekt"
-alias cip="cdp"
-
-# KTH
-alias kth="cd $ICLOUD_DRIVE/KTH"
-
 # Quaranten
 alias qattr="xattr -d com.apple.quarantine "
