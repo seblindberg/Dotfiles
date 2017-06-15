@@ -45,8 +45,9 @@ end
 
 def handle_file(file, target, options)
   is_folder      = File.directory? file
+  is_symlink     = File.symlink? target
   target_exists  = File.exists?(target)
-  link_exists    = target_exists && File.symlink?(target) &&
+  link_exists    = target_exists && is_symlink &&
                      File.readlink(target) == file
   will_overwrite = target_exists && !link_exists
 
@@ -56,8 +57,16 @@ def handle_file(file, target, options)
                 ANSI_RED_FG   => will_overwrite && !options[:force],
                 ANSI_RED_BG   => will_overwrite && options[:force],
                 ANSI_GREEN_FG => !target_exists
+                
+  suffix = if link_exists
+             ' ✔'
+           elsif is_symlink
+             " ➜ #{File.readlink(target)}"
+           else
+             ''
+           end
 
-  puts target_display_name + (link_exists ? ' ✔' : '')
+  puts target_display_name + suffix
   
   return if link_exists || options[:dry_run]
 
