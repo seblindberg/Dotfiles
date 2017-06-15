@@ -1,0 +1,134 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require 'socket'
+require 'optparse'
+
+SCRIPT_FILENAME = File.basename __FILE__
+HOSTNAME        = Socket.gethostname
+TARGET_DIR      = ENV['HOME']
+
+# ANSI color codes
+
+ANSI_BOLD     = 1
+ANSI_RED_FG   = 31
+ANSI_RED_BG   = 41
+ANSI_WHITE_BG = 47
+ANSI_BLACK_FG = 30
+
+
+def create_symlink_pair(file, filename = file)
+  [File.expand_path(file), "#{TARGET_DIR}/.#{filename}"]
+end
+
+def format_ansi(string, flags)
+  format = flags.select { |_, condition| condition }
+                .map {|flag,_| flag.to_s }
+                .join(';')
+  
+  if format == ''
+    string
+  else
+    "\e[#{format}m#{string}\e[0m"
+  end
+end
+
+def format_bold(string)
+  format_ansi string, ANSI_BOLD => true
+end
+
+def format_header(string)
+  format_ansi string, ANSI_WHITE_BG => true,
+                      ANSI_BLACK_FG => true,
+                      ANSI_BOLD => true
+end
+
+def handle_file(file, target, options)
+  is_folder = File.directory? file
+  exists    = File.exists?(target) && !File.symlink?(target)
+
+  target_display_name = format_ansi File.basename(target),
+                                    ANSI_BOLD   => is_folder,
+                                    ANSI_RED_FG => exists && !options[:force],
+                                    ANSI_RED_BG => exists && options[:force]
+
+  puts target_display_name
+
+  if options[:force]
+    FileUtils.rm_r target if is_folder && exists
+  else
+    return if exists
+  end
+
+  unless options[:dry_run]
+    FileUtils.ln_s file,
+                   target,
+                   force: true
+  end
+end
+
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: install [options]'
+
+  opts.on('-d', "--dry-run", 'Show what dotfile(s) would be installed') do |v|
+    options[:dry_run] = true
+  end
+
+  opts.on('-f', "--force", 'Replace existing dotfiles') do |v|
+    options[:force] = true
+  end
+  
+  opts.on('-s', '--shared', 'Copy only shared dotfiles') do |v|
+    options[:shared_only] = true
+  end
+
+  opts.on('-h', '--help', 'Prints this help') do
+    puts opts
+    exit
+  end
+end.parse!
+
+
+# Shared dotfiles
+#
+# Go through all files that are not the install script
+# itself or folders ending with .local
+shared_files = Dir['*'].reject do |f|
+  f == SCRIPT_FILENAME || File.extname(f) == '.local'
+end.map do |f|
+  create_symlink_pair f
+end
+
+# Local files
+#
+# Look for files in a folder with the same host name as the
+# computer
+local_files = if options[:shared_only]
+  []
+else
+  Dir["#{HOSTNAME}/*"].map do |f|
+    filename = f.sub %r{^#{HOSTNAME}/}, ''
+    create_symlink_pair f, filename
+  end
+end
+
+file_count = shared_files.length + local_files.length
+verb       = options[:dry_run] ? 'would' : 'will'
+adverb     = options[:force] ? '' : ' not'
+
+# Display banner text
+puts format_bold("The following #{file_count} dotfile symlinks #{verb} be installed.")
+
+puts "Existing files (colored in red) #{verb}#{adverb} be overwritten."
+
+unless shared_files.empty?
+  puts format_header("\n Shared dotfiles:")
+  shared_files.each { |(file, target)| handle_file file, target, options }
+end
+
+unless local_files.empty?
+  puts format_header("\n Local dotfiles:")
+  local_files.each { |(file, target)| handle_file file, target, options }
+end
+

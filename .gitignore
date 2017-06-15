@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!install
+!bash_profile
+!bash_aliases
+
+# ...even if they are in subdirectories
+!*/
