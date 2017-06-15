@@ -59,7 +59,7 @@ def handle_file(file, target, options)
 
   puts target_display_name + (link_exists ? ' ✔' : '')
   
-  return if link_exists
+  return if link_exists || options[:dry_run]
 
   if options[:force]
     FileUtils.rm_r target if is_folder && target_exists
@@ -67,11 +67,10 @@ def handle_file(file, target, options)
     return if target_exists
   end
   
-  unless options[:dry_run]
-    FileUtils.ln_s file,
-                   target,
-                   force: true
-  end
+  FileUtils.ln_s file,
+                 target,
+                 force: true
+  
 end
 
  
