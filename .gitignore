@@ -6,6 +6,7 @@
 !install
 !bash_profile
 !bash_aliases
+!README.md
 
 # ...even if they are in subdirectories
 !*/
