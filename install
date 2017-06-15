@@ -57,7 +57,7 @@ def handle_file(file, target, options)
                 ANSI_RED_BG   => will_overwrite && options[:force],
                 ANSI_GREEN_FG => !target_exists
 
-  puts format("%1s %s", link_exists ? '√' : '', target_display_name)
+  puts target_display_name + (link_exists ? ' ✔' : '')
   
   return if link_exists
 
@@ -74,7 +74,7 @@ def handle_file(file, target, options)
   end
 end
 
-
+ 
 options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: install [options]'
