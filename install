@@ -62,7 +62,7 @@ def handle_file(file, target, options)
   return if link_exists
 
   if options[:force]
-    FileUtils.rm_r target if is_folder && exists
+    FileUtils.rm_r target if is_folder && target_exists
   else
     return if target_exists
   end
