@@ -14,6 +14,7 @@ ANSI_RED_FG   = 31
 ANSI_RED_BG   = 41
 ANSI_WHITE_BG = 47
 ANSI_BLACK_FG = 30
+ANSI_GREEN_FG = 32
 
 
 def create_symlink_pair(file, filename = file)
@@ -43,13 +44,16 @@ def format_header(string)
 end
 
 def handle_file(file, target, options)
-  is_folder = File.directory? file
-  exists    = File.exists?(target) && !File.symlink?(target)
+  is_folder      = File.directory? file
+  exists         = File.exists?(target) && 
+    (!File.symlink?(target) || File.readlink(target) != file)
+  is_new_symlink = !File.exists?(target)
 
   target_display_name = format_ansi File.basename(target),
-                                    ANSI_BOLD   => is_folder,
-                                    ANSI_RED_FG => exists && !options[:force],
-                                    ANSI_RED_BG => exists && options[:force]
+                                    ANSI_BOLD     => is_folder,
+                                    ANSI_RED_FG   => exists && !options[:force],
+                                    ANSI_RED_BG   => exists && options[:force],
+                                    ANSI_GREEN_FG => is_new_symlink
 
   puts target_display_name
 
