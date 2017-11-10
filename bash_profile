@@ -17,8 +17,22 @@ function git_dirty_color {
 	if git_dirty; then
 		tput setaf 1
 	else
-		tput setaf 2
+		if git_unpushed; then
+			tput setaf 3
+		else
+			tput setaf 2
+		fi
 	fi
+}
+
+function git_unpushed {
+	if [[ !git_dirty ]]; then
+		utd=$(git status 2>/dev/null | grep "up to date")
+		if [[ $utd != "" ]]; then
+			return 1
+		fi
+	fi
+	return 0
 }
 
 function git_prompt {
@@ -88,7 +102,7 @@ export PATH="/usr/local/sbin:$PATH"
 export EDITOR=choc
 
 # Setup the prompt
-PS1='\n$(tput bold)$(tput setaf 4)$(get_path) $(git_prompt)$(tput sgr0)\n➜ '
+PS1='\n$(tput bold)$(tput setaf 4)$(get_path) $(git_prompt)$(tput sgr0)\n-> ' #➜
 
 
 
